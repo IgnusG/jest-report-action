@@ -9,18 +9,18 @@ const t = require('@babel/types');
 
 const fs = require('fs').promises;
 
-export async function readAndParseXMLFile(file, { $fs = fs, $xmlParser = xmlParser } = {}) {
+async function readAndParseXMLFile(file, { $fs = fs, $xmlParser = xmlParser } = {}) {
   const data = await $fs.readFile(file);
   const json = JSON.parse($xmlParser.toJson(data));
 
   return json;
 }
 
-export function parseTestInformation({ tests, failures, time }) {
+function parseTestInformation({ tests, failures, time }) {
   return { tests, failures, time };
 }
 
-export function parseTestcase({ classname, name, time, failure }) {
+function parseTestcase({ classname, name, time, failure }) {
   return {
     describe: classname,
     test: name,
@@ -29,7 +29,7 @@ export function parseTestcase({ classname, name, time, failure }) {
   }
 }
 
-export function parseTestsuite({ name, errors, failures, skipped, time, testcase }) {
+function parseTestsuite({ name, errors, failures, skipped, time, testcase }) {
   return {
     path: name,
     errors, failures, skipped,
@@ -38,7 +38,7 @@ export function parseTestsuite({ name, errors, failures, skipped, time, testcase
   }
 }
 
-export function isLiteralNamed(literalNode, names, { $t = t } = {}) {
+function isLiteralNamed(literalNode, names, { $t = t } = {}) {
   const isIdentifier = (node) => Array.isArray(names) 
     ? names.some(name => $t.isIdentifier(node, { name })) 
     : $t.isIdentifier(node, { name: names });
@@ -59,7 +59,7 @@ export function isLiteralNamed(literalNode, names, { $t = t } = {}) {
   return false;
 }
 
-export function isNameEquivalent(node, expected) {
+function isNameEquivalent(node, expected) {
   const rawValue = node.value;
   // Wildcard all special formatting values of Jest
   const regex = new RegExp(
@@ -69,7 +69,7 @@ export function isNameEquivalent(node, expected) {
   return regex.test(expected);
 }
 
-export function findTestIn(ast, { $traverse = traverse } = {}) {
+function findTestIn(ast, { $traverse = traverse } = {}) {
   return function findTest(expectedDescribeTitle, expectedTestTitle) {
     let resolved = false;
 
@@ -101,7 +101,7 @@ export function findTestIn(ast, { $traverse = traverse } = {}) {
   }
 }
 
-export function createAnnotation({ path }, testcase, location) {
+function createAnnotation({ path }, testcase, location) {
   return {
     path,
     start_line: location.start.line,
@@ -119,7 +119,7 @@ const config = {
   runName: core.getInput('run-name')
 }
 
-export async function runForestRun({ $core = core, $github = github, $config = config } = {}) {
+async function runForestRun({ $core = core, $github = github, $config = config } = {}) {
 
   const { testsuites: jest } = await readAndParseXMLFile(config.junitFile);
 
@@ -161,3 +161,16 @@ export async function runForestRun({ $core = core, $github = github, $config = c
 
   await octokit.check.update(annotationRequest);
 };
+
+module.exports = {
+  readAndParseXMLFile,
+  parseTestInformation,
+  parseTestcase,
+  parseTestsuite,
+  isLiteralNamed,
+  isNameEquivalent,
+  findTestIn,
+  createAnnotation,
+  runForestRun
+};
+
