@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "author": "",
   "description": "Parse junit output from jest-junit reporter and display test annotations",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "parcel build index.js --target node --bundle-node-modules"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/IgnusG/jest-report-action.git"
@@ -27,5 +30,7 @@
     "@babel/types": "^7.9.0",
     "xml2json": "^0.12.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "parcel-bundler": "^1.12.4"
+  }
 }
