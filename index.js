@@ -9,18 +9,18 @@ const t = require('@babel/types');
 
 const fs = require('fs').promises;
 
-async function readAndParseXMLFile(file) {
-  const data = await fs.readFile(file);
-  const json = JSON.parse(xmlParser.toJson(data));
+export async function readAndParseXMLFile(file, { $fs = fs, $xmlParser = xmlParser } = {}) {
+  const data = await $fs.readFile(file);
+  const json = JSON.parse($xmlParser.toJson(data));
 
   return json;
 }
 
-function parseTestInformation({ tests, failures, time }) {
+export function parseTestInformation({ tests, failures, time }) {
   return { tests, failures, time };
 }
 
-function parseTestcase({ classname, name, time, failure }) {
+export function parseTestcase({ classname, name, time, failure }) {
   return {
     describe: classname,
     test: name,
@@ -29,28 +29,28 @@ function parseTestcase({ classname, name, time, failure }) {
   }
 }
 
-function parseTestsuite({ name, errors, failures, skipped, time, testcase }) {
+export function parseTestsuite({ name, errors, failures, skipped, time, testcase }) {
   return {
     path: name,
-    tests: { errors, failures, skipped },
+    errors, failures, skipped,
     time,
     testcases: Array.isArray(testcase) ? testcase.map(parseTestcase) : parseTestcase(testcase)
   }
 }
 
-function isLiteralNamed(literalNode, names) {
+export function isLiteralNamed(literalNode, names, { $t = t } = {}) {
   const isIdentifier = (node) => Array.isArray(names) 
-    ? names.some(name => t.isIdentifier(node, { name })) 
-    : t.isIdentifier(node, { name: names });
+    ? names.some(name => $t.isIdentifier(node, { name })) 
+    : $t.isIdentifier(node, { name: names });
 
   // Simple describe("") or test("")
   if (isIdentifier(literalNode)) return true;
-  if (t.isCallExpression(literalNode)) {
+  if ($t.isCallExpression(literalNode)) {
     let node = literalNode.callee;
 
-    if (!t.isMemberExpression(node)) return false;
+    if (!$t.isMemberExpression(node)) return false;
     // Advanced describe.each([])("") or test.each([])("")
-    if (!t.isMemberExpression(node)) return isLiteralNamed(node.object, name);
+    if (!$t.isMemberExpression(node)) return isLiteralNamed(node.object, name);
 
     // Very advanced describe.skip.each([])("") or test.only.each([])("")
     return isLiteralNamed(node.object.object, names);
@@ -59,7 +59,7 @@ function isLiteralNamed(literalNode, names) {
   return false;
 }
 
-function isNameEquivalent(node, expected) {
+export function isNameEquivalent(node, expected) {
   const rawValue = node.value;
   // Wildcard all special formatting values of Jest
   const regex = new RegExp(
@@ -69,11 +69,11 @@ function isNameEquivalent(node, expected) {
   return regex.test(expected);
 }
 
-function findTestIn(ast) {
+export function findTestIn(ast, { $traverse = traverse } = {}) {
   return function findTest(expectedDescribeTitle, expectedTestTitle) {
     let resolved = false;
 
-    traverse(ast, {
+    $traverse(ast, {
       CallExpression(parentPath) {
         const { node: { callee: describe, arguments: [ describeTitle ] } } = parentPath;
 
@@ -101,7 +101,7 @@ function findTestIn(ast) {
   }
 }
 
-function createAnnotation({ path }, testcase, location) {
+export function createAnnotation({ path }, testcase, location) {
   return {
     path,
     start_line: location.start.line,
@@ -119,7 +119,7 @@ const config = {
   runName: core.getInput('run-name')
 }
 
-async function runForestRun({ $core = core, $github = github, $config = config } = {}) {
+export async function runForestRun({ $core = core, $github = github, $config = config } = {}) {
 
   const { testsuites: jest } = await readAndParseXMLFile(config.junitFile);
 
