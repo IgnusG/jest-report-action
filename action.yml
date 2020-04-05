@@ -17,5 +17,5 @@ inputs:
     required: true
     default: build
 runs:
-  using: node13
+  using: node12
   main: index.js
