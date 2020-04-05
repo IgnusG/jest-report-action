@@ -1,0 +1,31 @@
+{
+  "name": "jest-report-action",
+  "version": "1.0.0",
+  "author": "",
+  "description": "Parse junit output from jest-junit reporter and display test annotations",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IgnusG/jest-report-action.git"
+  },
+  "keywords": [
+    "github",
+    "actions",
+    "jest",
+    "tests"
+  ],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IgnusG/jest-report-action/issues"
+  },
+  "homepage": "https://github.com/IgnusG/jest-report-action#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.3",
+    "@actions/github": "^2.1.1",
+    "@babel/parser": "^7.9.4",
+    "@babel/traverse": "^7.9.0",
+    "@babel/types": "^7.9.0",
+    "xml2json": "^0.12.0"
+  },
+  "devDependencies": {}
+}
