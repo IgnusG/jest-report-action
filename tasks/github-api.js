@@ -2,12 +2,12 @@ import * as github from '@actions/github';
 
 async function createCheckWithAnnotations(
   { conclusion, summary, annotations }, 
-  { $octokit, $github = github }
+  { $octokit, $config, $github = github }
 ) {
   const checkRequest = {
     ...$github.context.repo,
     head_sha: $github.context.sha,
-    name: 'Jest',
+    name: $config.checkName,
     conclusion,
     output: {
       title: 'Jest Test Results',
@@ -52,7 +52,7 @@ export async function publishTestResults(testInformation, { $github = github, $c
     `${ details ? `\n\n${ details }` : '' }`,
     conclusion,
     annotations: annotations.slice(zeroAnnotations, maximumAnnotations)
-  }, { $octokit: octokit });
+  }, { $octokit: octokit, $config });
 
   let batchedAnnotations = annotations.slice(maximumAnnotations);
 

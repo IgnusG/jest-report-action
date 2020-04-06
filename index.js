@@ -13,7 +13,8 @@ import {
 const config = {
   accessToken: core.getInput('access-token'),
   junitFile: core.getInput('junit-file'),
-  runName: core.getInput('run-name')
+  runName: core.getInput('run-name'),
+  checkName: core.getInput('check-name')
 }
 
 async function parseTestsAndPublishResults(
