@@ -9,7 +9,7 @@ lint:
 
 build_and_push:
 	( \
-		make build && \
+		make build_mini && \
 		git add dist && \
 		git commit --amend --no-edit --no-verify && \
 		git push && \
