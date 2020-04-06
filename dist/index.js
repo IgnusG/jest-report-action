@@ -78012,8 +78012,6 @@ exports.createAnnotation = createAnnotation;
 exports.createAnnotationsFromTestsuites = createAnnotationsFromTestsuites;
 exports.publishAnnotationsToRun = publishAnnotationsToRun;
 
-var core = _interopRequireWildcard(require("@actions/core"));
-
 var github = _interopRequireWildcard(require("@actions/github"));
 
 var xmlParser = _interopRequireWildcard(require("xml2js"));
@@ -78119,7 +78117,7 @@ function isLiteralNamed(literalNode, names, {
     let node = literalNode.callee;
     if (!$t.isMemberExpression(node)) return false; // Advanced describe.each([])("") or test.each([])("")
 
-    if (!$t.isMemberExpression(node)) return isLiteralNamed(node.object, name); // Very advanced describe.skip.each([])("") or test.only.each([])("")
+    if (!$t.isMemberExpression(node)) return isLiteralNamed(node.object, names); // Very advanced describe.skip.each([])("") or test.only.each([])("")
 
     return isLiteralNamed(node.object.object, names);
   }
@@ -78215,7 +78213,6 @@ async function createAnnotationsFromTestsuites(testsuites) {
 }
 
 async function publishAnnotationsToRun(annotations, {
-  $core = core,
   $github = github,
   $config
 }) {
@@ -78225,7 +78222,7 @@ async function publishAnnotationsToRun(annotations, {
     ref: $github.context.sha
   });
 
-  const runIdResult = await octokit.checks.listForRef(request);
+  const runIdResult = await octokit.checks.listForRef(runIdRequest);
   const [{
     id: runId
   }] = runIdResult.data.check_runs.filter(({
@@ -78243,12 +78240,10 @@ async function publishAnnotationsToRun(annotations, {
 
   await octokit.check.update(annotationRequest);
 }
-},{"@actions/core":"FTVr","@actions/github":"Dol8","xml2js":"MB9M","@babel/parser":"sLiQ","@babel/traverse":"jiCt","@babel/types":"gU5P","escape-string-regexp":"zaVE"}],"Focm":[function(require,module,exports) {
+},{"@actions/github":"Dol8","xml2js":"MB9M","@babel/parser":"sLiQ","@babel/traverse":"jiCt","@babel/types":"gU5P","escape-string-regexp":"zaVE"}],"Focm":[function(require,module,exports) {
 "use strict";
 
 var core = _interopRequireWildcard(require("@actions/core"));
-
-var github = _interopRequireWildcard(require("@actions/github"));
 
 var _tasks = require("./tasks");
 
@@ -78263,22 +78258,19 @@ const config = {
 };
 
 async function parseTestsAndPublishAnnotations({
-  $core = core,
-  $github = github,
   $config = config
 } = {}) {
   const {
     testsuites: jest
   } = await (0, _tasks.readAndParseXMLFile)($config.junitFile);
-  const testsuites = jest.testsuite.map(parseTestsuite);
+  const testsuites = jest.testsuite.map(_tasks.parseTestsuite);
   const annotations = await (0, _tasks.createAnnotationsFromTestsuites)(testsuites);
   await (0, _tasks.publishAnnotationsToRun)(annotations, {
     $config
   });
 }
 
-;
 parseTestsAndPublishAnnotations().catch(error => {
   core.setFailed(`Something went wrong: ${error}`);
 });
-},{"@actions/core":"FTVr","@actions/github":"Dol8","./tasks":"rzbf"}]},{},["Focm"], null)
+},{"@actions/core":"FTVr","./tasks":"rzbf"}]},{},["Focm"], null)
