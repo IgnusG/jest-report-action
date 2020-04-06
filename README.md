@@ -1,6 +1,6 @@
 # Jest Github Actions Reporter
 
-Creates annotations based on the output of `jest-junit` (see [`jest-junit` Configuration](./README.md#jest-junit-configuration)) in your test files.
+Creates annotations based on the output of `jest-junit` (see [how to configure `jest-junit` properly](./README.md#jest-junit-configuration)) in your test files.
 
 ## Example
 ```
@@ -33,14 +33,21 @@ build: # <- this one!
 ```
 
 ## `jest-junit` Configuration
-   
-To provide correct annotation locations, you first need to configure `jest-junit` to format the xml file in a compatible way.
+
+Have a look at how to call `jest-junit` in your workflows in the [documentation](https://www.npmjs.com/package/jest-junit#usage).
+A very simple example is calling jest with a custom `--reporters` parameter:
+
+```bash
+  jest --ci --reporters=default --reporters=jest-junit
+```
+
+To provide **correct annotation locations**, you need to configure `jest-junit` to format the xml file in a compatible way.
 
 Set these in either your package.json or through enviornment variables while running jest in your CI (Github).
 
 ### <kbd>package.json</kbd>
 
-```
+```json
 "jest-junit": {
   "suiteNameTemplate": "{filepath}",
   "classNameTemplate": "{classname}",
@@ -50,4 +57,4 @@ Set these in either your package.json or through enviornment variables while run
 
 Refer to [`jest-junit` Documentation](https://www.npmjs.com/package/jest-junit#configuration) to see other ways to configure these.
 
-Thank you and have an amazing day!
+Thank you and have an **amazing day**!
