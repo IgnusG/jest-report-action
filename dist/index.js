@@ -78012,7 +78012,7 @@ exports.createAnnotation = createAnnotation;
 exports.createAnnotationsFromTestsuites = createAnnotationsFromTestsuites;
 exports.createCheckWithAnnotations = createCheckWithAnnotations;
 exports.updateCheckWithAnnotations = updateCheckWithAnnotations;
-exports.createCheckRunWithAnnotations = createCheckRunWithAnnotations;
+exports.publishTestResults = publishTestResults;
 
 var github = _interopRequireWildcard(require("@actions/github"));
 
@@ -78353,7 +78353,7 @@ async function updateCheckWithAnnotations(annotations, {
   }
 }
 
-async function createCheckRunWithAnnotations(checkInformation, {
+async function publishTestResults(testInformation, {
   $github = github,
   $config
 }) {
@@ -78366,7 +78366,7 @@ async function createCheckRunWithAnnotations(checkInformation, {
     total,
     conclusion,
     annotations
-  } = checkInformation;
+  } = testInformation;
   const octokit = new $github.GitHub($config.accessToken);
   await createCheckWithAnnotations({
     summary: '## These are all the test results I was able to find from your jest-junit reporter' + `**${total}** tests were completed in **${time}s** with **${passed}** passed ✔ and **${failed}** failed ✖ tests.`,
@@ -78404,7 +78404,7 @@ const config = {
 };
 const zeroTests = 0;
 
-async function parseTestsAndCreateJestCheck({
+async function parseTestsAndPublishResults({
   $config = config
 } = {}) {
   const {
@@ -78417,19 +78417,20 @@ async function parseTestsAndCreateJestCheck({
   } = (0, _tasks.parseTestInformation)(jest);
   const testsuites = jest.testsuite.map(_tasks.parseTestsuite);
   const annotations = await (0, _tasks.createAnnotationsFromTestsuites)(testsuites);
-  const checkInformation = {
+  const testInformation = {
     annotations,
     time,
     passed: tests - failures,
     failed: failures,
+    total: tests,
     conclusion: failures > zeroTests ? 'failure' : 'success'
   };
-  await (0, _tasks.createCheckRunWithAnnotations)(checkInformation, {
+  await (0, _tasks.publishTestResults)(testInformation, {
     $config
   });
 }
 
-parseTestsAndCreateJestCheck().catch(error => {
+parseTestsAndPublishResults().catch(error => {
   core.setFailed(`Something went wrong: ${error}`);
 });
 },{"@actions/core":"FTVr","./tasks":"rzbf"}]},{},["Focm"], null)
