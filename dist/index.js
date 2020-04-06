@@ -78010,7 +78010,7 @@ exports.isNameEquivalent = isNameEquivalent;
 exports.findTestIn = findTestIn;
 exports.createAnnotation = createAnnotation;
 exports.createAnnotationsFromTestsuites = createAnnotationsFromTestsuites;
-exports.publishAnnotationsToRun = publishAnnotationsToRun;
+exports.createCheckRunWithAnnotations = createCheckRunWithAnnotations;
 
 var github = _interopRequireWildcard(require("@actions/github"));
 
@@ -78031,12 +78031,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
-
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 async function readAndParseXMLFile(file, {
   $fs = _fs.promises,
@@ -78212,40 +78206,34 @@ async function createAnnotationsFromTestsuites(testsuites) {
   return annotations;
 }
 
-async function publishAnnotationsToRun(annotations, {
+async function createCheckRunWithAnnotations(checkInformation, {
   $github = github,
   $config
 }) {
+  const {
+    status,
+    time,
+    passed,
+    failed,
+    annotations
+  } = checkInformation;
   const octokit = new $github.GitHub($config.accessToken);
-
-  const runIdRequest = _objectSpread({}, $github.context.repo, {
-    ref: $github.context.sha,
-    check_name: $config.runName
-  });
-
-  let runIdResult = null;
-  let runId = null;
-
-  try {
-    runIdResult = await octokit.checks.listForRef(runIdRequest);
-    [{
-      id: runId
-    }] = runIdResult.data.check_runs;
-  } catch (error) {
-    throw new Error(`Request failed or result mallformed - result: ${JSON.stringify(runIdResult)} - error: ${JSON.stringify(error)}`);
-  }
-
-  const annotationRequest = _objectSpread({}, $github.context.repo, {
-    check_run_id: runId,
+  const checkRequest = {
+    name: 'Jest Test',
+    head_sha: $github.context.sha,
+    status,
     output: {
       title: 'Jest Test Results',
-      summary: 'These are all the test results I was able to find from your jest-junit reporter',
+      summary: `
+## These are all the test results I was able to find from your jest-junit reporter
+${passed + failed} tests were completed in ${time}s with ${passed} passed ✔ and ${failed} failed ❌ tests.
+`,
       annotations
     }
-  });
+  };
 
   try {
-    await octokit.check.update(annotationRequest);
+    await octokit.check.create(checkRequest);
   } catch (error) {
     throw new Error(`Request to create annotations failed - error: ${JSON.stringify(error)} `);
   }
@@ -78261,26 +78249,44 @@ function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return 
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
+function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
+
+function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
+
 const config = {
   accessToken: core.getInput('access-token'),
   junitFile: core.getInput('junit-file'),
   runName: core.getInput('run-name')
 };
 
-async function parseTestsAndPublishAnnotations({
+async function parseTestsAndCreateJestCheck({
   $config = config
 } = {}) {
-  const {
+  const _await$readAndParseXM = await (0, _tasks.readAndParseXMLFile)($config.junitFile),
+        {
     testsuites: jest
-  } = await (0, _tasks.readAndParseXMLFile)($config.junitFile);
+  } = _await$readAndParseXM,
+        testSuiteRoot = _objectWithoutProperties(_await$readAndParseXM, ["testsuites"]);
+
+  const {
+    time,
+    tests,
+    failures
+  } = (0, _tasks.parseTestInformation)(testSuiteRoot);
   const testsuites = jest.testsuite.map(_tasks.parseTestsuite);
   const annotations = await (0, _tasks.createAnnotationsFromTestsuites)(testsuites);
-  await (0, _tasks.publishAnnotationsToRun)(annotations, {
+  const checkInformation = {
+    annotations,
+    time,
+    passed: tests - failures,
+    failed: failures
+  };
+  await (0, _tasks.createCheckRunWithAnnotations)(checkInformation, {
     $config
   });
 }
 
-parseTestsAndPublishAnnotations().catch(error => {
+parseTestsAndCreateJestCheck().catch(error => {
   core.setFailed(`Something went wrong: ${error}`);
 });
 },{"@actions/core":"FTVr","./tasks":"rzbf"}]},{},["Focm"], null)
