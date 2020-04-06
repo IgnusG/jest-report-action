@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
-import * as xmlParser from 'xml2json';
+import * as xmlParser from 'xml2js';
 
 import { parse } from '@babel/parser';
 import traverse from '@babel/traverse';
@@ -14,16 +14,22 @@ import { promises as fs } from 'fs';
 
 export async function readAndParseXMLFile(file, { $fs = fs, $xmlParser = xmlParser } = {}) {
   const data = await $fs.readFile(file);
-  const json = JSON.parse($xmlParser.toJson(data));
+  const parser = new $xmlParser.Parser();
+
+  const json = await parser.parseStringPromise(data);
 
   return json;
 }
 
-export function parseTestInformation({ tests, failures, time }) {
+export function parseTestInformation(testsuiteRoot) {
+  const { '$': { tests, failures, time } } = testsuiteRoot;
+
   return { tests, failures, time };
 }
 
-export function parseTestcase({ classname, name, time, failure }) {
+export function parseTestcase(testcase) {
+  const { '$': { classname, name, time }, failure } = testcase;
+
   return {
     describe: classname,
     test: name,
@@ -32,7 +38,9 @@ export function parseTestcase({ classname, name, time, failure }) {
   }
 }
 
-export function parseTestsuite({ name, errors, failures, skipped, time, testcase }) {
+export function parseTestsuite(testsuite) {
+  const { '$': { name, errors, failures, skipped, time }, testcase } = testsuite;
+
   return {
     path: name,
     errors, failures, skipped,
