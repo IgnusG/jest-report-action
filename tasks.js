@@ -159,11 +159,15 @@ function formatJestMessage(message) {
       .join('\n');
 
     const stacktrace = messageLines.filter(filterStacktrace);
+    const [ firstLineOfStacktrace ] = stacktrace;
+    const stringStart = 0;
+    const startsWith = firstLineOfStacktrace
+      .slice(stringStart, firstLineOfStacktrace.indexOf('at '));
 
     return {
       title,
       expectations,
-      stacktrace: cleanStackWithRelativePaths(stacktrace).join('\n')
+      stacktrace: `${ startsWith }Stacktrace:\n${ cleanStackWithRelativePaths(stacktrace).join('\n') }`
     }
   } catch(error) {
     console.error(`Failed to parse - falling back to "stupid" mode - error: ${ error.message }`);
@@ -183,8 +187,7 @@ export function createAnnotation({ path: filePath }, testcase, location) {
     start_line: location.start.line,
     end_line: location.end.line,
     annotation_level: 'failure',
-    message: expectations,
-    rawValue: stacktrace
+    message: `${ expectations }\n\n${ stacktrace }`
   };
 
   if (location.start.line === location.end.line) {
@@ -222,29 +225,66 @@ export async function createAnnotationsFromTestsuites(testsuites) {
   return annotations;
 }
 
-export async function createCheckRunWithAnnotations(checkInformation, { $github = github, $config }) {
-  const { time, passed, failed, total, conclusion, annotations } = checkInformation;
-
-  const octokit = new $github.GitHub($config.accessToken);
-
+export async function createCheckWithAnnotations(
+  { conclusion, summary, annotations }, 
+  { $octokit, $github = github }
+) {
   const checkRequest = {
     ...$github.context.repo,
-    name: 'Jest',
     head_sha: $github.context.sha,
+    name: 'Jest',
     conclusion,
     output: {
       title: 'Jest Test Results',
-      summary: `
-## These are all the test results I was able to find from your jest-junit reporter
-**${ total }** tests were completed in **${ time }s** with **${ passed }** passed ✔ and **${ failed }** failed ✖ tests.
-`,
-      annotations
+      summary,
+      annotations 
     }
   };
 
   try {
-    await octokit.checks.create(checkRequest);
+    await $octokit.checks.create(checkRequest);
   } catch (error) {
     throw new Error(`Request to create annotations failed - request: ${ JSON.stringify(checkRequest) } - error: ${ error.message } `);
+  }
+}
+
+export async function updateCheckWithAnnotations(annotations, { $octokit, $github = github }) {
+  const updateCheckRequest = {
+    ...$github.context.repo,
+    head_sha: $github.context.sha,
+    output: { annotations }
+  };
+
+  try {
+    await $octokit.checks.update(updateCheckRequest);
+  } catch (error) {
+    throw new Error(`Request to update annotations failed - request: ${ JSON.stringify(updateCheckRequest) } - error: ${ error.message } `);
+  }
+}
+
+export async function createCheckRunWithAnnotations(checkInformation, { $github = github, $config }) {
+  const zeroAnnotations = 0;
+  const maximumAnnotations = 50;
+
+  const { time, passed, failed, total, conclusion, annotations } = checkInformation;
+
+  const octokit = new $github.GitHub($config.accessToken);
+
+  await createCheckWithAnnotations({
+    summary:
+      '## These are all the test results I was able to find from your jest-junit reporter' +
+      `**${ total }** tests were completed in **${ time }s** with **${ passed }** passed ✔ and **${ failed }** failed ✖ tests.`,
+    conclusion,
+    annotations: annotations.slice(zeroAnnotations, maximumAnnotations)
+  }, { $octokit: octokit });
+
+  let batchedAnnotations = annotations.slice(maximumAnnotations);
+
+  while (batchedAnnotations.length > zeroAnnotations) {
+    await updateCheckWithAnnotations({
+      annotations: batchedAnnotations.slice(zeroAnnotations, maximumAnnotations)
+    }, { $octokit: octokit });
+
+    batchedAnnotations = batchedAnnotations.slice(maximumAnnotations);
   }
 }
