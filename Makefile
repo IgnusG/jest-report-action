@@ -12,7 +12,8 @@ bump_major:
 		npm version major -m "Build latest version %s" && \
 		make build && \
 		git add dist && \
-		git commit --amend --no-edit \
+		git commit --amend --no-edit && \
+		git push \
 	)
 
 bump_minor:
@@ -20,7 +21,8 @@ bump_minor:
 		npm version minor -m "Build latest version %s" && \
 		make build && \
 		git add dist && \
-		git commit --amend --no-edit \
+		git commit --amend --no-edit && \
+		git push
 	)
 
 bump_patch:
@@ -28,5 +30,6 @@ bump_patch:
 		npm version patch -m "Build latest version %s" && \
 		make build && \
 		git add dist && \
-		git commit --amend --no-edit \
+		git commit --amend --no-edit && \
+		git push
 	)
