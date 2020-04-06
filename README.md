@@ -10,6 +10,8 @@ Creates annotations based on the output of `jest-junit` (see [`jest-junit` Confi
         access-token: ${{ secrets.GITHUB_TOKEN }}
 ``` 
 
+<img src="./docs/example-main.png" alt="Example of Jest Annotations" />
+
 ## Inputs
 
 ### `access-token`
