@@ -78217,7 +78217,6 @@ async function createCheckRunWithAnnotations(checkInformation, {
   $config
 }) {
   const {
-    status,
     time,
     passed,
     failed,
@@ -78228,7 +78227,6 @@ async function createCheckRunWithAnnotations(checkInformation, {
   const checkRequest = _objectSpread({}, $github.context.repo, {
     name: 'Jest Test',
     head_sha: $github.context.sha,
-    status,
     output: {
       title: 'Jest Test Results',
       summary: `
