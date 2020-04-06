@@ -262,11 +262,11 @@ export async function updateCheckWithAnnotations(annotations, { $octokit, $githu
   }
 }
 
-export async function createCheckRunWithAnnotations(checkInformation, { $github = github, $config }) {
+export async function publishTestResults(testInformation, { $github = github, $config }) {
   const zeroAnnotations = 0;
   const maximumAnnotations = 50;
 
-  const { time, passed, failed, total, conclusion, annotations } = checkInformation;
+  const { time, passed, failed, total, conclusion, annotations } = testInformation;
 
   const octokit = new $github.GitHub($config.accessToken);
 
