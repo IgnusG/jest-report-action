@@ -1,5 +1,4 @@
 import * as core from '@actions/core';
-import * as github from '@actions/github';
 
 import { readAndParseXMLFile, createAnnotationsFromTestsuites, publishAnnotationsToRun, parseTestsuite } from './tasks';
 
@@ -10,7 +9,7 @@ const config = {
 }
 
 async function parseTestsAndPublishAnnotations(
-  { $core = core, $github = github, $config = config } = {}
+  { $config = config } = {}
 ) {
   const { testsuites: jest } = await readAndParseXMLFile($config.junitFile);
 
@@ -18,7 +17,7 @@ async function parseTestsAndPublishAnnotations(
   const annotations = await createAnnotationsFromTestsuites(testsuites);
 
   await publishAnnotationsToRun(annotations, { $config });
-};
+}
 
 parseTestsAndPublishAnnotations().catch(error => {
   core.setFailed(`Something went wrong: ${ error }`);

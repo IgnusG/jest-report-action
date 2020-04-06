@@ -1,4 +1,3 @@
-import * as core from '@actions/core';
 import * as github from '@actions/github';
 
 import * as xmlParser from 'xml2js';
@@ -61,7 +60,7 @@ export function isLiteralNamed(literalNode, names, { $t = t } = {}) {
 
     if (!$t.isMemberExpression(node)) return false;
     // Advanced describe.each([])("") or test.each([])("")
-    if (!$t.isMemberExpression(node)) return isLiteralNamed(node.object, name);
+    if (!$t.isMemberExpression(node)) return isLiteralNamed(node.object, names);
 
     // Very advanced describe.skip.each([])("") or test.only.each([])("")
     return isLiteralNamed(node.object.object, names);
@@ -148,10 +147,10 @@ export async function createAnnotationsFromTestsuites(testsuites) {
   return annotations;
 }
 
-export async function publishAnnotationsToRun(annotations, { $core = core, $github = github, $config }) {
+export async function publishAnnotationsToRun(annotations, { $github = github, $config }) {
   const octokit = new $github.GitHub($config.accessToken);
   const runIdRequest = { ...$github.context.repo, ref: $github.context.sha };
-  const runIdResult = await octokit.checks.listForRef(request);
+  const runIdResult = await octokit.checks.listForRef(runIdRequest);
 
   const [ { id: runId } ] = runIdResult.data.check_runs
     .filter(({ name }) => name === $config.runName);
