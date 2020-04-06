@@ -22,7 +22,7 @@ bump_minor:
 		make build && \
 		git add dist && \
 		git commit --amend --no-edit && \
-		git push
+		git push \
 	)
 
 bump_patch:
@@ -31,5 +31,5 @@ bump_patch:
 		make build && \
 		git add dist && \
 		git commit --amend --no-edit && \
-		git push
+		git push \
 	)
