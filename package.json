@@ -5,8 +5,11 @@
   "description": "Parse junit output from jest-junit reporter and display test annotations",
   "main": "dist/index.js",
   "scripts": {
-    "build-minified": "parcel build index.js --target node --bundle-node-modules --no-source-maps",
-    "build": "npm run build-minified -- --no-minify"
+    "build": "parcel",
+    "build:minified": "npm run build -- build index.js --target node --bundle-node-modules --no-source-maps",
+    "build:unminified": "npm run build:minified -- --no-minify",
+    "lint": "eslint",
+    "lint:code": "npm run lint -- *.js"
   },
   "repository": {
     "type": "git",
@@ -33,6 +36,7 @@
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
+    "eslint": "^6.8.0",
     "esm": "^3.2.25",
     "parcel-bundler": "^1.12.4"
   }
