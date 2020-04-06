@@ -150,9 +150,16 @@ export async function createAnnotationsFromTestsuites(testsuites) {
 export async function publishAnnotationsToRun(annotations, { $github = github, $config }) {
   const octokit = new $github.GitHub($config.accessToken);
   const runIdRequest = { ...$github.context.repo, ref: $github.context.sha, check_name: $config.runName };
-  const runIdResult = await octokit.checks.listForRef(runIdRequest);
 
-  const [ { id: runId } ] = runIdResult.data.check_runs;
+  let runIdResult = null;
+  let runId = null;
+
+  try {
+    runIdResult = await octokit.checks.listForRef(runIdRequest);
+    [ { id: runId } ] = runIdResult.data.check_runs;
+  } catch (error) {
+    throw new Error(`Request failed or result mallformed - result: ${ JSON.stringify(runIdResult) } - error: ${ JSON.stringify(error) }`);
+  }
 
   const annotationRequest = {
     ...$github.context.repo,
@@ -164,5 +171,9 @@ export async function publishAnnotationsToRun(annotations, { $github = github, $
     }
   };
 
-  await octokit.check.update(annotationRequest);
+  try {
+    await octokit.check.update(annotationRequest);
+  } catch (error) {
+    throw new Error(`Request to create annotations failed - error: ${ JSON.stringify(error) } `);
+  }
 }
