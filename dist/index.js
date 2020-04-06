@@ -78223,10 +78223,17 @@ async function publishAnnotationsToRun(annotations, {
     check_name: $config.runName
   });
 
-  const runIdResult = await octokit.checks.listForRef(runIdRequest);
-  const [{
-    id: runId
-  }] = runIdResult.data.check_runs;
+  let runIdResult = null;
+  let runId = null;
+
+  try {
+    runIdResult = await octokit.checks.listForRef(runIdRequest);
+    [{
+      id: runId
+    }] = runIdResult.data.check_runs;
+  } catch (error) {
+    throw new Error(`Request failed or result mallformed - result: ${JSON.stringify(runIdResult)} - error: ${JSON.stringify(error)}`);
+  }
 
   const annotationRequest = _objectSpread({}, $github.context.repo, {
     check_run_id: runId,
@@ -78237,7 +78244,11 @@ async function publishAnnotationsToRun(annotations, {
     }
   });
 
-  await octokit.check.update(annotationRequest);
+  try {
+    await octokit.check.update(annotationRequest);
+  } catch (error) {
+    throw new Error(`Request to create annotations failed - error: ${JSON.stringify(error)} `);
+  }
 }
 },{"@actions/github":"Dol8","xml2js":"MB9M","@babel/parser":"sLiQ","@babel/traverse":"jiCt","@babel/types":"gU5P","escape-string-regexp":"zaVE"}],"Focm":[function(require,module,exports) {
 "use strict";
