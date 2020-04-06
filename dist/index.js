@@ -78279,6 +78279,6 @@ async function parseTestsAndPublishAnnotations({
 
 ;
 parseTestsAndPublishAnnotations().catch(error => {
-  core.setFailed(error);
+  core.setFailed(`Something went wrong: ${error}`);
 });
 },{"@actions/core":"FTVr","@actions/github":"Dol8","./tasks":"rzbf"}]},{},["Focm"], null)
