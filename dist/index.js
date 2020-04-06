@@ -78177,15 +78177,22 @@ function createAnnotation({
   const {
     failure: [message]
   } = testcase;
-  return {
+  let annotation = {
     path,
     start_line: location.start.line,
     end_line: location.end.line,
-    start_column: location.start.line,
-    end_column: location.end.line,
     annotation_level: 'failure',
     message
   };
+
+  if (location.start.line === location.end.line) {
+    annotation = _objectSpread({}, annotation, {
+      start_column: location.start.column,
+      end_column: location.end.column
+    });
+  }
+
+  return annotation;
 }
 
 async function createAnnotationsFromTestsuites(testsuites) {
