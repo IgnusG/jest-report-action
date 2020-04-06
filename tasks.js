@@ -153,6 +153,7 @@ export async function createCheckRunWithAnnotations(checkInformation, { $github 
   const octokit = new $github.GitHub($config.accessToken);
 
   const checkRequest = {
+    ...$github.context.repo,
     name: 'Jest Test',
     head_sha: $github.context.sha,
     status,
