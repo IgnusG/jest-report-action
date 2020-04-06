@@ -11,9 +11,9 @@ const config = {
 async function parseTestsAndCreateJestCheck(
   { $config = config } = {}
 ) {
-  const { testsuites: jest, ...testSuiteRoot } = await readAndParseXMLFile($config.junitFile);
+  const { testsuites: jest } = await readAndParseXMLFile($config.junitFile);
 
-  const { time, tests, failures } = parseTestInformation(testSuiteRoot);
+  const { time, tests, failures } = parseTestInformation(jest);
 
   const testsuites = jest.testsuite.map(parseTestsuite);
   const annotations = await createAnnotationsFromTestsuites(testsuites);
