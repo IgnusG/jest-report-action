@@ -223,14 +223,15 @@ export async function createAnnotationsFromTestsuites(testsuites) {
 }
 
 export async function createCheckRunWithAnnotations(checkInformation, { $github = github, $config }) {
-  const { time, passed, failed, total, annotations } = checkInformation;
+  const { time, passed, failed, total, conclusion, annotations } = checkInformation;
 
   const octokit = new $github.GitHub($config.accessToken);
 
   const checkRequest = {
     ...$github.context.repo,
-    name: 'Jest Test',
+    name: 'Jest',
     head_sha: $github.context.sha,
+    conclusion,
     output: {
       title: 'Jest Test Results',
       summary: `

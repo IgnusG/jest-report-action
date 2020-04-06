@@ -8,6 +8,8 @@ const config = {
   runName: core.getInput('run-name')
 }
 
+const zeroTests = 0;
+
 async function parseTestsAndCreateJestCheck(
   { $config = config } = {}
 ) {
@@ -22,7 +24,8 @@ async function parseTestsAndCreateJestCheck(
     annotations,
     time,
     passed: tests - failures,
-    failed: failures
+    failed: failures,
+    conclusion: failures > zeroTests ? 'failure' : 'success'
   }
 
   await createCheckRunWithAnnotations(checkInformation, { $config });
