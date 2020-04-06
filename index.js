@@ -1,3 +1,5 @@
+/* eslint no-magic-numbers: 0 */
+
 import * as core from '@actions/core';
 
 import {
@@ -14,8 +16,6 @@ const config = {
   runName: core.getInput('run-name')
 }
 
-const zeroTests = 0;
-
 async function parseTestsAndPublishResults(
   { $config = config } = {}
 ) {
@@ -26,14 +26,20 @@ async function parseTestsAndPublishResults(
   const testsuites = jest.testsuite.map(parseTestsuite);
   const { annotations, unknownFailures } = await createAnnotationsFromTestsuites(testsuites);
 
-  const testInformation = {
+  let testInformation = {
     annotations,
-    details: `Following tests failed, but could not be found in the source files:\n${ unknownFailures.map(fail => `- ${ fail }`).join('\n') }`,
     time,
     passed: tests - failures,
     failed: failures,
     total: tests,
-    conclusion: failures > zeroTests ? 'failure' : 'success'
+    conclusion: failures > 0 ? 'failure' : 'success'
+  }
+
+  if (unknownFailures.length > 0) {
+    testInformation = {
+      ...testInformation,
+      details: `Following tests failed, but could not be found in the source files:\n${ unknownFailures.map(fail => `- ${ fail }`).join('\n') }`
+    };
   }
 
   await publishTestResults(testInformation, { $config });

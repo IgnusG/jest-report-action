@@ -48,7 +48,8 @@ export async function publishTestResults(testInformation, { $github = github, $c
   await createCheckWithAnnotations({
     summary:
     '#### These are all the test results I was able to find from your jest-junit reporter\n' +
-    `**${ total }** tests were completed in **${ time }s** with **${ passed }** passed ✔ and **${ failed }** failed ✖ tests.\n\n${ details }`,
+    `**${ total }** tests were completed in **${ time }s** with **${ passed }** passed ✔ and **${ failed }** failed ✖ tests.` +
+    `${ details ? `\n\n${ details }` : '' }`,
     conclusion,
     annotations: annotations.slice(zeroAnnotations, maximumAnnotations)
   }, { $octokit: octokit });
