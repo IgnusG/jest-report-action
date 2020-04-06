@@ -112,6 +112,8 @@ export function findTestIn(ast, { $traverse = traverse } = {}) {
 }
 
 export function createAnnotation({ path }, testcase, location) {
+  const { failure: [ message ] } = testcase;
+
   return {
     path,
     start_line: location.start.line,
@@ -119,7 +121,7 @@ export function createAnnotation({ path }, testcase, location) {
     start_column: location.start.line,
     end_column: location.end.line,
     annotation_level: 'failure',
-    message: testcase.failure
+    message
   }
 }
 
