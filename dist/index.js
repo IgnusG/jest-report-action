@@ -78238,13 +78238,10 @@ function formatJestMessage(message) {
     const [title] = messageLines;
     const expectations = messageLines.slice(expectationStart).filter(line => !filterStacktrace(line)).join('\n');
     const stacktrace = messageLines.filter(filterStacktrace);
-    const [firstLineOfStacktrace] = stacktrace;
-    const stringStart = 0;
-    const startsWith = firstLineOfStacktrace.slice(stringStart, firstLineOfStacktrace.indexOf('at '));
     return {
       title,
       expectations,
-      stacktrace: `${startsWith}Stacktrace:\n${cleanStackWithRelativePaths(stacktrace).join('\n')}`
+      stacktrace: `Stacktrace:\n${cleanStackWithRelativePaths(stacktrace).join('\n')}`
     };
   } catch (error) {
     console.error(`Failed to parse - falling back to "stupid" mode - error: ${error.message}`);
@@ -78369,7 +78366,7 @@ async function publishTestResults(testInformation, {
   } = testInformation;
   const octokit = new $github.GitHub($config.accessToken);
   await createCheckWithAnnotations({
-    summary: '## These are all the test results I was able to find from your jest-junit reporter' + `**${total}** tests were completed in **${time}s** with **${passed}** passed ✔ and **${failed}** failed ✖ tests.`,
+    summary: '#### These are all the test results I was able to find from your jest-junit reporter\n' + `**${total}** tests were completed in **${time}s** with **${passed}** passed ✔ and **${failed}** failed ✖ tests.`,
     conclusion,
     annotations: annotations.slice(zeroAnnotations, maximumAnnotations)
   }, {
