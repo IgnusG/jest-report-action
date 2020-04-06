@@ -21,6 +21,6 @@ async function parseTestsAndPublishAnnotations(
 };
 
 parseTestsAndPublishAnnotations().catch(error => {
-  github.setFailed(error);
+  core.setFailed(error);
 });
 
