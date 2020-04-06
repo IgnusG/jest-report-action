@@ -5,7 +5,8 @@
   "description": "Parse junit output from jest-junit reporter and display test annotations",
   "main": "dist/index.js",
   "scripts": {
-    "build": "parcel build index.js --target node --bundle-node-modules"
+    "build-minified": "parcel build index.js --target node --bundle-node-modules --no-source-maps",
+    "build": "npm run build-minified -- --no-minify"
   },
   "repository": {
     "type": "git",
