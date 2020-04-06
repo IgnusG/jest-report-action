@@ -78010,6 +78010,8 @@ exports.isNameEquivalent = isNameEquivalent;
 exports.findTestIn = findTestIn;
 exports.createAnnotation = createAnnotation;
 exports.createAnnotationsFromTestsuites = createAnnotationsFromTestsuites;
+exports.createCheckWithAnnotations = createCheckWithAnnotations;
+exports.updateCheckWithAnnotations = updateCheckWithAnnotations;
 exports.createCheckRunWithAnnotations = createCheckRunWithAnnotations;
 
 var github = _interopRequireWildcard(require("@actions/github"));
@@ -78236,10 +78238,13 @@ function formatJestMessage(message) {
     const [title] = messageLines;
     const expectations = messageLines.slice(expectationStart).filter(line => !filterStacktrace(line)).join('\n');
     const stacktrace = messageLines.filter(filterStacktrace);
+    const [firstLineOfStacktrace] = stacktrace;
+    const stringStart = 0;
+    const startsWith = firstLineOfStacktrace.slice(stringStart, firstLineOfStacktrace.indexOf('at '));
     return {
       title,
       expectations,
-      stacktrace: cleanStackWithRelativePaths(stacktrace).join('\n')
+      stacktrace: `${startsWith}Stacktrace:\n${cleanStackWithRelativePaths(stacktrace).join('\n')}`
     };
   } catch (error) {
     console.error(`Failed to parse - falling back to "stupid" mode - error: ${error.message}`);
@@ -78264,8 +78269,7 @@ function createAnnotation({
     start_line: location.start.line,
     end_line: location.end.line,
     annotation_level: 'failure',
-    message: expectations,
-    rawValue: stacktrace
+    message: `${expectations}\n\n${stacktrace}`
   };
 
   if (location.start.line === location.end.line) {
@@ -78305,10 +78309,56 @@ async function createAnnotationsFromTestsuites(testsuites) {
   return annotations;
 }
 
+async function createCheckWithAnnotations({
+  conclusion,
+  summary,
+  annotations
+}, {
+  $octokit,
+  $github = github
+}) {
+  const checkRequest = _objectSpread({}, $github.context.repo, {
+    head_sha: $github.context.sha,
+    name: 'Jest',
+    conclusion,
+    output: {
+      title: 'Jest Test Results',
+      summary,
+      annotations
+    }
+  });
+
+  try {
+    await $octokit.checks.create(checkRequest);
+  } catch (error) {
+    throw new Error(`Request to create annotations failed - request: ${JSON.stringify(checkRequest)} - error: ${error.message} `);
+  }
+}
+
+async function updateCheckWithAnnotations(annotations, {
+  $octokit,
+  $github = github
+}) {
+  const updateCheckRequest = _objectSpread({}, $github.context.repo, {
+    head_sha: $github.context.sha,
+    output: {
+      annotations
+    }
+  });
+
+  try {
+    await $octokit.checks.update(updateCheckRequest);
+  } catch (error) {
+    throw new Error(`Request to update annotations failed - request: ${JSON.stringify(updateCheckRequest)} - error: ${error.message} `);
+  }
+}
+
 async function createCheckRunWithAnnotations(checkInformation, {
   $github = github,
   $config
 }) {
+  const zeroAnnotations = 0;
+  const maximumAnnotations = 50;
   const {
     time,
     passed,
@@ -78318,25 +78368,22 @@ async function createCheckRunWithAnnotations(checkInformation, {
     annotations
   } = checkInformation;
   const octokit = new $github.GitHub($config.accessToken);
-
-  const checkRequest = _objectSpread({}, $github.context.repo, {
-    name: 'Jest',
-    head_sha: $github.context.sha,
+  await createCheckWithAnnotations({
+    summary: '## These are all the test results I was able to find from your jest-junit reporter' + `**${total}** tests were completed in **${time}s** with **${passed}** passed ✔ and **${failed}** failed ✖ tests.`,
     conclusion,
-    output: {
-      title: 'Jest Test Results',
-      summary: `
-## These are all the test results I was able to find from your jest-junit reporter
-**${total}** tests were completed in **${time}s** with **${passed}** passed ✔ and **${failed}** failed ✖ tests.
-`,
-      annotations
-    }
+    annotations: annotations.slice(zeroAnnotations, maximumAnnotations)
+  }, {
+    $octokit: octokit
   });
+  let batchedAnnotations = annotations.slice(maximumAnnotations);
 
-  try {
-    await octokit.checks.create(checkRequest);
-  } catch (error) {
-    throw new Error(`Request to create annotations failed - request: ${JSON.stringify(checkRequest)} - error: ${error.message} `);
+  while (batchedAnnotations.length > zeroAnnotations) {
+    await updateCheckWithAnnotations({
+      annotations: batchedAnnotations.slice(zeroAnnotations, maximumAnnotations)
+    }, {
+      $octokit: octokit
+    });
+    batchedAnnotations = batchedAnnotations.slice(maximumAnnotations);
   }
 }
 },{"@actions/github":"Dol8","xml2js":"MB9M","@babel/parser":"sLiQ","@babel/traverse":"jiCt","@babel/types":"gU5P","escape-string-regexp":"zaVE"}],"Focm":[function(require,module,exports) {
