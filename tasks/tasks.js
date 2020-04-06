@@ -6,6 +6,7 @@ import { createAnnotation } from './annotations';
 
 export async function createAnnotationsFromTestsuites(testsuites) {
   let annotations = [];
+  let unknownFailures = [];
 
   for (let testsuite of testsuites) {
     const file = await fs.readFile(testsuite.path, { encoding: 'utf-8' });
@@ -18,13 +19,13 @@ export async function createAnnotationsFromTestsuites(testsuites) {
 
       if (location === false) {
         console.error('The following testcase ', testcase.describe, ' > ', testcase.test, ' was not found');
-        continue;
-      } 
-
-      annotations = [ ...annotations, createAnnotation(testsuite, testcase, location) ];
+        unknownFailures = [ ...unknownFailures, `${ testcase.describe } > ${ testcase.test }` ];
+      } else {
+        annotations = [ ...annotations, createAnnotation(testsuite, testcase, location) ];
+      }
     }
   }
 
-  return annotations;
+  return { annotations, unknownFailures };
 }
 

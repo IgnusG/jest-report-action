@@ -24,10 +24,11 @@ async function parseTestsAndPublishResults(
   const { time, tests, failures } = parseTestInformation(jest);
 
   const testsuites = jest.testsuite.map(parseTestsuite);
-  const annotations = await createAnnotationsFromTestsuites(testsuites);
+  const { annotations, unknownFailures } = await createAnnotationsFromTestsuites(testsuites);
 
   const testInformation = {
     annotations,
+    details: `Following tests failed, but could not be found in the source files:\n${ unknownFailures.join('\n').map(fail => `- ${ fail }`) }`,
     time,
     passed: tests - failures,
     failed: failures,

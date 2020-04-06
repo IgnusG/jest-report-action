@@ -56,7 +56,7 @@ function formatJestMessage(message) {
   } catch(error) {
     console.error(`Failed to parse - falling back to "stupid" mode - error: ${ error.message }`);
 
-    return message;
+    return { title: 'Test Failed', expectations: 'A fix a day keeps the debugger away...', stacktrace: message };
   }
 }
 
