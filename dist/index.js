@@ -78026,6 +78026,8 @@ var _escapeStringRegexp = _interopRequireDefault(require("escape-string-regexp")
 
 var _fs = require("fs");
 
+var _path = _interopRequireDefault(require("path"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
@@ -78037,6 +78039,26 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _wrapRegExp(re, groups) { _wrapRegExp = function (re, groups) { return new BabelRegExp(re, undefined, groups); }; var _RegExp = _wrapNativeSuper(RegExp); var _super = RegExp.prototype; var _groups = new WeakMap(); function BabelRegExp(re, flags, groups) { var _this = _RegExp.call(this, re, flags); _groups.set(_this, groups || _groups.get(re)); return _this; } _inherits(BabelRegExp, _RegExp); BabelRegExp.prototype.exec = function (str) { var result = _super.exec.call(this, str); if (result) result.groups = buildGroups(result, this); return result; }; BabelRegExp.prototype[Symbol.replace] = function (str, substitution) { if (typeof substitution === "string") { var groups = _groups.get(this); return _super[Symbol.replace].call(this, str, substitution.replace(/\$<([^>]+)>/g, function (_, name) { return "$" + groups[name]; })); } else if (typeof substitution === "function") { var _this = this; return _super[Symbol.replace].call(this, str, function () { var args = []; args.push.apply(args, arguments); if (typeof args[args.length - 1] !== "object") { args.push(buildGroups(args, _this)); } return substitution.apply(this, args); }); } else { return _super[Symbol.replace].call(this, str, substitution); } }; function buildGroups(result, re) { var g = _groups.get(re); return Object.keys(g).reduce(function (groups, name) { groups[name] = result[g[name]]; return groups; }, Object.create(null)); } return _wrapRegExp.apply(this, arguments); }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _possibleConstructorReturn(self, call) { if (call && (typeof call === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _wrapNativeSuper(Class) { var _cache = typeof Map === "function" ? new Map() : undefined; _wrapNativeSuper = function _wrapNativeSuper(Class) { if (Class === null || !_isNativeFunction(Class)) return Class; if (typeof Class !== "function") { throw new TypeError("Super expression must either be null or a function"); } if (typeof _cache !== "undefined") { if (_cache.has(Class)) return _cache.get(Class); _cache.set(Class, Wrapper); } function Wrapper() { return _construct(Class, arguments, _getPrototypeOf(this).constructor); } Wrapper.prototype = Object.create(Class.prototype, { constructor: { value: Wrapper, enumerable: false, writable: true, configurable: true } }); return _setPrototypeOf(Wrapper, Class); }; return _wrapNativeSuper(Class); }
+
+function _construct(Parent, args, Class) { if (_isNativeReflectConstruct()) { _construct = Reflect.construct; } else { _construct = function _construct(Parent, args, Class) { var a = [null]; a.push.apply(a, args); var Constructor = Function.bind.apply(Parent, a); var instance = new Constructor(); if (Class) _setPrototypeOf(instance, Class.prototype); return instance; }; } return _construct.apply(null, arguments); }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _isNativeFunction(fn) { return Function.toString.call(fn).indexOf("[native code]") !== -1; }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
 async function readAndParseXMLFile(file, {
   $fs = _fs.promises,
@@ -78171,18 +78193,79 @@ function findTestIn(ast, {
   };
 }
 
+function cleanStackWithRelativePaths(stacktrace) {
+  const filters = [line => {
+    // Remove jasmin stacks
+    if (line.includes('node_modules/jest-jasmin')) return false; // Remove process queue stacks
+
+    if (line.includes('internal/process/task_queues')) return false; // Remove empty promises
+    // eslint-disable-next-line no-useless-escape
+
+    if (line.trimStart() === 'at new Promise (\<anonymous\>)') return false;
+    return line;
+  }, line => {
+    const {
+      groups: {
+        file
+      }
+    } = /*#__PURE__*/_wrapRegExp(/.*\((.*)\).?/, {
+      file: 1
+    }).exec(line) || {
+      groups: {
+        file: false
+      }
+    };
+    return file ? line.replace(file, _path.default.relative(process.cwd(), file)) : line;
+  }];
+
+  const applyFilters = line => filters.reduce((result, filter) => filter(result), line);
+
+  const isNotEmpty = line => line !== false;
+
+  return stacktrace.map(applyFilters).filter(isNotEmpty);
+}
+
+function formatJestMessage(message) {
+  const messageLines = message.split('\n'); // Skip first line (title) and one blank line
+
+  const expectationStart = 2;
+
+  const filterStacktrace = line => line.trimStart().startsWith('at ');
+
+  try {
+    const [title] = messageLines;
+    const expectations = messageLines.slice(expectationStart).filter(line => !filterStacktrace(line)).join('\n');
+    const stacktrace = messageLines.filter(filterStacktrace);
+    return {
+      title,
+      expectations,
+      stacktrace: cleanStackWithRelativePaths(stacktrace).join('\n')
+    };
+  } catch (error) {
+    console.error(`Failed to parse - falling back to "stupid" mode - error: ${error.message}`);
+    return message;
+  }
+}
+
 function createAnnotation({
-  path
+  path: filePath
 }, testcase, location) {
   const {
     failure: [message]
   } = testcase;
+  const {
+    title,
+    expectations,
+    stacktrace
+  } = formatJestMessage(message);
   let annotation = {
-    path,
+    path: filePath,
+    title,
     start_line: location.start.line,
     end_line: location.end.line,
     annotation_level: 'failure',
-    message
+    message: expectations,
+    rawValue: stacktrace
   };
 
   if (location.start.line === location.end.line) {
@@ -78230,6 +78313,7 @@ async function createCheckRunWithAnnotations(checkInformation, {
     time,
     passed,
     failed,
+    total,
     annotations
   } = checkInformation;
   const octokit = new $github.GitHub($config.accessToken);
@@ -78241,7 +78325,7 @@ async function createCheckRunWithAnnotations(checkInformation, {
       title: 'Jest Test Results',
       summary: `
 ## These are all the test results I was able to find from your jest-junit reporter
-${passed + failed} tests were completed in ${time}s with ${passed} passed ✔ and ${failed} failed ❌ tests.
+**${total}** tests were completed in **${time}s** with **${passed}** passed ✔ and **${failed}** failed ✖ tests.
 `,
       annotations
     }
