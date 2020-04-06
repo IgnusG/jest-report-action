@@ -78370,11 +78370,11 @@ async function createCheckWithAnnotations({
       title: 'Jest Test Results',
       summary,
       annotations,
-      images: {
+      images: [{
         alt: 'Jest',
         caption: 'Jest',
         image_url: 'https://jestjs.io/img/favicon/favicon.ico'
-      }
+      }]
     }
   });
 
