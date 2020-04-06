@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
-import { readAndParseXMLFile, createAnnotationsFromTestsuites, publishAnnotationsToRun } from './tasks';
+import { readAndParseXMLFile, createAnnotationsFromTestsuites, publishAnnotationsToRun, parseTestsuite } from './tasks';
 
 const config = {
   accessToken: core.getInput('access-token'),
