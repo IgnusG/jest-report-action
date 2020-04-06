@@ -147,32 +147,27 @@ export async function createAnnotationsFromTestsuites(testsuites) {
   return annotations;
 }
 
-export async function publishAnnotationsToRun(annotations, { $github = github, $config }) {
+export async function createCheckRunWithAnnotations(checkInformation, { $github = github, $config }) {
+  const { status, time, passed, failed, annotations } = checkInformation;
+
   const octokit = new $github.GitHub($config.accessToken);
-  const runIdRequest = { ...$github.context.repo, ref: $github.context.sha, check_name: $config.runName };
 
-  let runIdResult = null;
-  let runId = null;
-
-  try {
-    runIdResult = await octokit.checks.listForRef(runIdRequest);
-    [ { id: runId } ] = runIdResult.data.check_runs;
-  } catch (error) {
-    throw new Error(`Request failed or result mallformed - result: ${ JSON.stringify(runIdResult) } - error: ${ JSON.stringify(error) }`);
-  }
-
-  const annotationRequest = {
-    ...$github.context.repo,
-    check_run_id: runId,
+  const checkRequest = {
+    name: 'Jest Test',
+    head_sha: $github.context.sha,
+    status,
     output: {
       title: 'Jest Test Results',
-      summary: 'These are all the test results I was able to find from your jest-junit reporter',
+      summary: `
+## These are all the test results I was able to find from your jest-junit reporter
+${ passed + failed } tests were completed in ${ time }s with ${ passed } passed ✔ and ${ failed } failed ❌ tests.
+`,
       annotations
     }
   };
 
   try {
-    await octokit.check.update(annotationRequest);
+    await octokit.check.create(checkRequest);
   } catch (error) {
     throw new Error(`Request to create annotations failed - error: ${ JSON.stringify(error) } `);
   }

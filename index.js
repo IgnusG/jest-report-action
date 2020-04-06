@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 
-import { readAndParseXMLFile, createAnnotationsFromTestsuites, publishAnnotationsToRun, parseTestsuite } from './tasks';
+import { readAndParseXMLFile, parseTestInformation, createAnnotationsFromTestsuites, createCheckRunWithAnnotations, parseTestsuite } from './tasks';
 
 const config = {
   accessToken: core.getInput('access-token'),
@@ -8,18 +8,27 @@ const config = {
   runName: core.getInput('run-name')
 }
 
-async function parseTestsAndPublishAnnotations(
+async function parseTestsAndCreateJestCheck(
   { $config = config } = {}
 ) {
-  const { testsuites: jest } = await readAndParseXMLFile($config.junitFile);
+  const { testsuites: jest, ...testSuiteRoot } = await readAndParseXMLFile($config.junitFile);
+
+  const { time, tests, failures } = parseTestInformation(testSuiteRoot);
 
   const testsuites = jest.testsuite.map(parseTestsuite);
   const annotations = await createAnnotationsFromTestsuites(testsuites);
 
-  await publishAnnotationsToRun(annotations, { $config });
+  const checkInformation = {
+    annotations,
+    time,
+    passed: tests - failures,
+    failed: failures
+  }
+
+  await createCheckRunWithAnnotations(checkInformation, { $config });
 }
 
-parseTestsAndPublishAnnotations().catch(error => {
+parseTestsAndCreateJestCheck().catch(error => {
   core.setFailed(`Something went wrong: ${ error }`);
 });
 
