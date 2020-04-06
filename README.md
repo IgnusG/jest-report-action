@@ -3,6 +3,8 @@
 Creates annotations based on the output of `jest-junit` (see [how to configure `jest-junit` properly](./README.md#jest-junit-configuration)) in your test files.
 
 ## Example
+
+<kbd>.github/workflows/your-workflow.yml</kbd>
 ```
     - uses: IgnusG/jest-report-action@v1.0
       if: always()
@@ -26,6 +28,7 @@ The location and/or the name of the JUnit file. `jest-junit` uses <kbd>junit.xml
 
 The name of your run. This is typically `build` but can be configured individually. Make sure it matches your workflow config:
 
+<kbd>.github/workflows/your-workflow.yml</kbd>
 ```yaml
 build: # <- this one!
     steps:
@@ -37,7 +40,8 @@ build: # <- this one!
 Have a look at how to call `jest-junit` in your workflows in the [documentation](https://www.npmjs.com/package/jest-junit#usage).
 A very simple example is calling jest with a custom `--reporters` parameter:
 
-```bash
+<kbd>package.json</kbd> and other
+```
   jest --ci --reporters=default --reporters=jest-junit
 ```
 
@@ -45,8 +49,7 @@ To provide **correct annotation locations**, you need to configure `jest-junit` 
 
 Set these in either your package.json or through enviornment variables while running jest in your CI (Github).
 
-### <kbd>package.json</kbd>
-
+<kbd>package.json</kbd>
 ```json
 "jest-junit": {
   "suiteNameTemplate": "{filepath}",
