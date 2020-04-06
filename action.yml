@@ -2,7 +2,7 @@ name: Jest Github Action Reporter
 author: IgnusG
 description: Jest Junit Github Actions annotation reporter made easy
 branding:
-  icon: code
+  icon: list
   color: green
 inputs:
   access-token:
