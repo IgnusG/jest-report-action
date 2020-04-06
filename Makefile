@@ -12,7 +12,8 @@ build_and_push:
 		make build && \
 		git add dist && \
 		git commit --amend --no-edit --no-verify && \
-		git push --follow-tags \
+		git push && \
+		git push --tags \
 	)
 
 bump_major:
