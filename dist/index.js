@@ -78243,7 +78243,7 @@ ${passed + failed} tests were completed in ${time}s with ${passed} passed ✔ an
   try {
     await octokit.check.create(checkRequest);
   } catch (error) {
-    throw new Error(`Request to create annotations failed - request: ${JSON.stringify(checkRequest)} - error: ${JSON.stringify(error)} `);
+    throw new Error(`Request to create annotations failed - request: ${JSON.stringify(checkRequest)} - error: ${error.message} `);
   }
 }
 },{"@actions/github":"Dol8","xml2js":"MB9M","@babel/parser":"sLiQ","@babel/traverse":"jiCt","@babel/types":"gU5P","escape-string-regexp":"zaVE"}],"Focm":[function(require,module,exports) {
