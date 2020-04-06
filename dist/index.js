@@ -78241,7 +78241,7 @@ ${passed + failed} tests were completed in ${time}s with ${passed} passed ✔ an
   });
 
   try {
-    await octokit.check.create(checkRequest);
+    await octokit.checks.create(checkRequest);
   } catch (error) {
     throw new Error(`Request to create annotations failed - request: ${JSON.stringify(checkRequest)} - error: ${error.message} `);
   }
