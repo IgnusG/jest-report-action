@@ -78174,6 +78174,9 @@ function findTestIn(ast, {
 function createAnnotation({
   path
 }, testcase, location) {
+  const {
+    failure: [message]
+  } = testcase;
   return {
     path,
     start_line: location.start.line,
@@ -78181,7 +78184,7 @@ function createAnnotation({
     start_column: location.start.line,
     end_column: location.end.line,
     annotation_level: 'failure',
-    message: testcase.failure
+    message
   };
 }
 
