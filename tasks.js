@@ -149,11 +149,10 @@ export async function createAnnotationsFromTestsuites(testsuites) {
 
 export async function publishAnnotationsToRun(annotations, { $github = github, $config }) {
   const octokit = new $github.GitHub($config.accessToken);
-  const runIdRequest = { ...$github.context.repo, ref: $github.context.sha };
+  const runIdRequest = { ...$github.context.repo, ref: $github.context.sha, check_name: $config.runName };
   const runIdResult = await octokit.checks.listForRef(runIdRequest);
 
-  const [ { id: runId } ] = runIdResult.data.check_runs
-    .filter(({ name }) => name === $config.runName);
+  const [ { id: runId } ] = runIdResult.data.check_runs;
 
   const annotationRequest = {
     ...$github.context.repo,
