@@ -78219,15 +78219,14 @@ async function publishAnnotationsToRun(annotations, {
   const octokit = new $github.GitHub($config.accessToken);
 
   const runIdRequest = _objectSpread({}, $github.context.repo, {
-    ref: $github.context.sha
+    ref: $github.context.sha,
+    check_name: $config.runName
   });
 
   const runIdResult = await octokit.checks.listForRef(runIdRequest);
   const [{
     id: runId
-  }] = runIdResult.data.check_runs.filter(({
-    name
-  }) => name === $config.runName);
+  }] = runIdResult.data.check_runs;
 
   const annotationRequest = _objectSpread({}, $github.context.repo, {
     check_run_id: runId,
