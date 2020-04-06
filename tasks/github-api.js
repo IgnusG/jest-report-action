@@ -12,7 +12,12 @@ async function createCheckWithAnnotations(
     output: {
       title: 'Jest Test Results',
       summary,
-      annotations 
+      annotations,
+      images: {
+        alt: 'Jest',
+        caption: 'Jest',
+        image_url: 'https://jestjs.io/img/favicon/favicon.ico'
+      }
     }
   };
 
