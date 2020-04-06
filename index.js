@@ -25,6 +25,7 @@ async function parseTestsAndCreateJestCheck(
     time,
     passed: tests - failures,
     failed: failures,
+    total: tests,
     conclusion: failures > zeroTests ? 'failure' : 'success'
   }
 
