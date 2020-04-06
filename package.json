@@ -1,6 +1,6 @@
 {
   "name": "jest-report-action",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "author": "",
   "description": "Parse junit output from jest-junit reporter and display test annotations",
   "main": "dist/index.js",
