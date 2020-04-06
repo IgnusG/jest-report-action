@@ -28,7 +28,7 @@ async function parseTestsAndPublishResults(
 
   const testInformation = {
     annotations,
-    details: `Following tests failed, but could not be found in the source files:\n${ unknownFailures.join('\n').map(fail => `- ${ fail }`) }`,
+    details: `Following tests failed, but could not be found in the source files:\n${ unknownFailures.map(fail => `- ${ fail }`).join('\n') }`,
     time,
     passed: tests - failures,
     failed: failures,
