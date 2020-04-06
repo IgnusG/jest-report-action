@@ -21,6 +21,6 @@ async function parseTestsAndPublishAnnotations(
 };
 
 parseTestsAndPublishAnnotations().catch(error => {
-  core.setFailed(error);
+  core.setFailed(`Something went wrong: ${ error }`);
 });
 
