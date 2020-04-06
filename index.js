@@ -1,6 +1,12 @@
 import * as core from '@actions/core';
 
-import { readAndParseXMLFile, parseTestInformation, createAnnotationsFromTestsuites, publishTestResults, parseTestsuite } from './tasks';
+import {
+  readAndParseXMLFile,
+  parseTestInformation,
+  parseTestsuite,
+  createAnnotationsFromTestsuites,
+  publishTestResults
+} from './tasks';
 
 const config = {
   accessToken: core.getInput('access-token'),
