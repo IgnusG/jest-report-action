@@ -78314,13 +78314,15 @@ async function createCheckRunWithAnnotations(checkInformation, {
     passed,
     failed,
     total,
+    conclusion,
     annotations
   } = checkInformation;
   const octokit = new $github.GitHub($config.accessToken);
 
   const checkRequest = _objectSpread({}, $github.context.repo, {
-    name: 'Jest Test',
+    name: 'Jest',
     head_sha: $github.context.sha,
+    conclusion,
     output: {
       title: 'Jest Test Results',
       summary: `
@@ -78353,6 +78355,7 @@ const config = {
   junitFile: core.getInput('junit-file'),
   runName: core.getInput('run-name')
 };
+const zeroTests = 0;
 
 async function parseTestsAndCreateJestCheck({
   $config = config
@@ -78371,7 +78374,8 @@ async function parseTestsAndCreateJestCheck({
     annotations,
     time,
     passed: tests - failures,
-    failed: failures
+    failed: failures,
+    conclusion: failures > zeroTests ? 'failure' : 'success'
   };
   await (0, _tasks.createCheckRunWithAnnotations)(checkInformation, {
     $config
