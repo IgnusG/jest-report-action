@@ -9,7 +9,7 @@ export async function createAnnotationsFromTestsuites(testsuites) {
 
   for (let testsuite of testsuites) {
     const file = await fs.readFile(testsuite.path, { encoding: 'utf-8' });
-    const { groups: { extension } } = (/.*\/.*\.(?<extension>.*)$/).exec(testsuite.path);
+    const { groups: { extension } } = (/.*\.(?<extension>.*)$/).exec(testsuite.path);
 
     let testAst = null;
 
