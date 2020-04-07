@@ -61,17 +61,17 @@ function formatJestMessage(message) {
 }
 
 export function createAnnotation({ path: filePath }, testcase, location) {
-  const { failure: [ message ] } = testcase;
+  const { describe, test, failure: [ message ] } = testcase;
 
   const { title, expectations, stacktrace } = formatJestMessage(message);
 
   let annotation = {
     path: filePath,
-    title,
+    title: `${ describe } > ${ test }`,
     start_line: location.start.line,
     end_line: location.end.line,
     annotation_level: 'failure',
-    message: `${ expectations }\n\n${ stacktrace }`
+    message: `${ title }\n${ expectations }\n\n${ stacktrace }`
   };
 
   if (location.start.line === location.end.line) {
