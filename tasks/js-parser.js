@@ -1,3 +1,4 @@
+import { parse } from '@babel/parser';
 import traverse from '@babel/traverse';
 import * as t from '@babel/types';
 
@@ -64,6 +65,21 @@ export function findTestIn(ast, { $traverse = traverse } = {}) {
 
     return resolved;
   }
+}
+
+export function parseJs(file, fileType) {
+  const fileTypes = {
+    jsx: [ 'jsx' ],
+    tsx: [ 'typescript', 'jsx' ],
+    ts: [ 'typescript' ]
+  };
+
+  const config = {
+    sourceType: 'module',
+    plugins: fileTypes[fileType] || []
+  }
+
+  return parse(file, config);
 }
 
 // Internal Dependencies
