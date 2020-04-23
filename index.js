@@ -11,9 +11,9 @@ import {
 } from './tasks';
 
 function parseWorkingDir(dir) {
-  if (/\/$/.match(dir)) return dir;
+  if ((/\/$/).test(dir)) return dir;
 
-  return `${dir}/`;
+  return `${ dir }/`;
 }
 
 const config = {
@@ -27,7 +27,7 @@ const config = {
 async function parseTestsAndPublishResults(
   { $config = config } = {}
 ) {
-  const { testsuites: jest } = await readAndParseXMLFile(`${$config.workingDir}${$config.junitFile}`);
+  const { testsuites: jest } = await readAndParseXMLFile(`${ $config.workingDir }${ $config.junitFile }`);
 
   const { time, tests, failures } = parseTestInformation(jest);
 
