@@ -7,7 +7,7 @@ build_mini:
 lint:
 	npm run lint:code
 
-build_and_commit:
+build_and_stage:
 	( \
 		make build_mini && \
 		git add dist \
