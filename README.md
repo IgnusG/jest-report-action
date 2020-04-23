@@ -42,6 +42,10 @@ Be sure to run this action after each jest run, that way you can use the same na
 
 Otherwise you have to give each generated JUnit file a unique name and pass it to `jest-report-action`.
 
+### `working-directory` - *optional*
+
+The working directory, where the `junit-file`, as well as the sources (of test files) can be found. The default is the root directory of your project.
+
 ## `jest-junit` Configuration
 
 Have a look at how to call `jest-junit` in your workflows in the [documentation](https://www.npmjs.com/package/jest-junit#usage).

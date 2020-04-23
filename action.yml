@@ -17,6 +17,9 @@ inputs:
   check-name:
     description: Customize the name of the check - in case there are multiple
     default: Jest
+  working-directory:
+    description: Customize the path for source files and the xml file
+    default: .
 runs:
   using: node12
   main: dist/index.js

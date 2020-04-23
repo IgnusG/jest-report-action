@@ -10,21 +10,28 @@ import {
   publishTestResults
 } from './tasks';
 
+function parseWorkingDir(dir) {
+  if (/\/$/.match(dir)) return dir;
+
+  return `${dir}/`;
+}
+
 const config = {
   accessToken: core.getInput('access-token'),
   junitFile: core.getInput('junit-file'),
   runName: core.getInput('run-name'),
-  checkName: core.getInput('check-name')
+  checkName: core.getInput('check-name'),
+  workingDir: parseWorkingDir(core.getInput('working-directory'))
 }
 
 async function parseTestsAndPublishResults(
   { $config = config } = {}
 ) {
-  const { testsuites: jest } = await readAndParseXMLFile($config.junitFile);
+  const { testsuites: jest } = await readAndParseXMLFile(`${$config.workingDir}${$config.junitFile}`);
 
   const { time, tests, failures } = parseTestInformation(jest);
 
-  const testsuites = jest.testsuite.map(parseTestsuite);
+  const testsuites = jest.testsuite.map(parseTestsuite({ $config }));
   const { annotations, unknownFailures } = await createAnnotationsFromTestsuites(testsuites);
 
   let testInformation = {

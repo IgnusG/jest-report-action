@@ -28,14 +28,16 @@ export function parseTestcase(testcase) {
   }
 }
 
-export function parseTestsuite(testsuite) {
-  const { '$': { name, errors, failures, skipped, time }, testcase } = testsuite;
+export function parseTestsuite({ $config } = {}) {
+  return (testsuite) => {
+    const { '$': { name, errors, failures, skipped, time }, testcase } = testsuite;
 
-  return {
-    path: name,
-    errors, failures, skipped,
-    time,
-    testcases: Array.isArray(testcase) ? testcase.map(parseTestcase) : [ parseTestcase(testcase) ]
+    return {
+      path: `${ $config.workingDir }${ name }`,
+      errors, failures, skipped,
+      time,
+      testcases: Array.isArray(testcase) ? testcase.map(parseTestcase) : [ parseTestcase(testcase) ]
+    }
   }
 }
 
