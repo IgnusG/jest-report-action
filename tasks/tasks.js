@@ -1,3 +1,5 @@
+/* eslint max-lines-per-function: 0 */
+
 import { promises as fs } from 'fs';
 
 import { findTestIn, parseJs } from './js-parser';
@@ -8,15 +10,32 @@ export async function createAnnotationsFromTestsuites(testsuites) {
   let unknownFailures = [];
 
   for (let testsuite of testsuites) {
-    const file = await fs.readFile(testsuite.path, { encoding: 'utf-8' });
-    const { groups: { extension } } = (/.*\.(?<extension>.*)$/).exec(testsuite.path);
+    let file = null;
+    let extension = null;
+
+    try {
+      file = await fs.readFile(testsuite.path, { encoding: 'utf-8' });
+
+      const { groups: { extension: extensionResult } } = (/.*\.(?<extension>.*)$/).exec(testsuite.path);
+
+      extension = extensionResult;
+    } catch(error) {
+      console.error('Unknown error occured while reading the file.', error);
+
+      unknownFailures = [
+        ...unknownFailures,
+        ...testsuite.testcases.map(({ describe, test }) => `${ describe } > ${ test }`)
+      ];
+
+      continue;
+    }
 
     let testAst = null;
 
     try {
       testAst = parseJs(file, extension);
     } catch(error) {
-      console.error(`I don't unserstand the file extension .${ extension } yet.`);
+      console.error(`I probably don't unserstand the file extension .${ extension } yet. Or a different error occured for file ${ testsuite.path }.\n\n`, error);
 
       unknownFailures = [
         ...unknownFailures,
