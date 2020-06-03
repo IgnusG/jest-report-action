@@ -33,3 +33,6 @@ bump_patch:
 		npm version patch -m "Build latest version %s" && \
 		make push \
 	)
+
+test_manual:
+	node -r esm index.test.js
