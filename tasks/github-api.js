@@ -4,9 +4,16 @@ async function createCheckWithAnnotations(
   { conclusion, summary, annotations }, 
   { $octokit, $config, $github = github }
 ) {
+  let sha = $github.context.sha;
+
+  // DEV: If we're on a PR, use the sha from the payload to prevent Ghost Check Runs
+  if ($github.context.payload.pull_request) {
+    sha = $github.context.payload.pull_request.head.sha;
+  }
+
   const checkRequest = {
     ...$github.context.repo,
-    head_sha: $github.context.sha,
+    head_sha: sha,
     name: $config.checkName,
     conclusion,
     output: {
