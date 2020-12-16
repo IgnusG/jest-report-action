@@ -35,7 +35,7 @@ export async function createAnnotationsFromTestsuites(testsuites) {
     try {
       testAst = parseJs(file, extension);
     } catch(error) {
-      console.error(`I probably don't unserstand the file extension .${ extension } yet. Or a different error occured for file ${ testsuite.path }.\n\n`, error);
+      console.error(`I probably don't understand the file extension .${ extension } yet. Or a different error occured for file ${ testsuite.path }.\n\n`, error);
 
       unknownFailures = [
         ...unknownFailures,
