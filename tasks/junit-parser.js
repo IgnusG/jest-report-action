@@ -6,9 +6,7 @@ export async function readAndParseXMLFile(file, { $fs = fs, $xmlParser = xmlPars
   const data = await $fs.readFile(file);
   const parser = new $xmlParser.Parser();
 
-  const json = await parser.parseStringPromise(data);
-
-  return json;
+  return parser.parseStringPromise(data);
 }
 
 export function parseTestInformation(testsuiteRoot) {
@@ -33,7 +31,7 @@ export function parseTestsuite({ $config } = {}) {
     const { '$': { name, errors, failures, skipped, time }, testcase } = testsuite;
 
     return {
-      path: `${ $config.workingDir }${ name }`,
+      path: `${ $config.workingDir !== './' ? $config.workingDir : '' }${ name }`,
       errors, failures, skipped,
       time,
       testcases: Array.isArray(testcase) ? testcase.map(parseTestcase) : [ parseTestcase(testcase) ]
